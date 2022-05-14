@@ -4,46 +4,93 @@ import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.io.PrintWriter;
+import java.util.Comparator;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.Map.Entry;
+
 import javax.imageio.ImageIO;
 
 public class Img2Ascii {
 
-    private BufferedImage img;
-    private double pixval;
+	private int pixelSize;
+	private BufferedImage toBePixelated, croppedImg;
+    private double pixval, colorVal;
+    private Color pixcol;
     private PrintWriter prntwrt;
     private FileWriter filewrt;
 
-    public Img2Ascii(String fileName) {
-		fileName+=".txt";
+    public Img2Ascii(File outputFile, int pixelSize) {
         try {
-            prntwrt = new PrintWriter(filewrt = new FileWriter(fileName,
+            prntwrt = new PrintWriter(filewrt = new FileWriter(outputFile,
                     true));
         } catch (IOException ex) {
         }
+        this.pixelSize = (pixelSize == 0) ? 1 : pixelSize;
     }
 
-    public void convertToAscii(String imgname) {
+    public void convertToAscii(File inputImage) {
         try {
-            img = ImageIO.read(new File(imgname));
+            
+            toBePixelated = ImageIO.read(inputImage);
         } catch (IOException e) {
         }
-
-        for (int i = 0; i < img.getHeight(); i++) {
-            for (int j = 0; j < img.getWidth(); j++) {
-                Color pixcol = new Color(img.getRGB(j, i));
-                pixval = (((pixcol.getRed() * 0.30) + 
-							(pixcol.getBlue() * 0.59) + 
-							(pixcol.getGreen() * 0.11)));
-				
-                print(strChar(pixval));
-            }
-            try {
-                prntwrt.println("");
-                prntwrt.flush();
-                filewrt.flush();
-            } catch (Exception ex) {
+        
+        for(int y = 0;y < toBePixelated.getHeight();y += pixelSize) {
+        	for(int x = 0;x < toBePixelated.getWidth();x += pixelSize) {
+        		croppedImg = getCroppedImage(toBePixelated, x, y, pixelSize, pixelSize);
+        		pixcol = getDominantColor(croppedImg);
+        		pixval = getColorValue(pixcol);
+        		
+        		print(strChar(pixval));
+        	}
+        	
+        	 try {
+                 prntwrt.println("");
+                 prntwrt.flush();
+                 filewrt.flush();
+             } catch (Exception ex) {
+             }
+        }
+    }
+    
+    private double getColorValue(Color pixelColor){
+    	colorVal = (((pixelColor.getRed() * 0.30) + 
+				(pixelColor.getBlue() * 0.59) + 
+				(pixelColor.getGreen() * 0.11)));
+    	
+    	return colorVal;
+    }
+    
+    private BufferedImage getCroppedImage(BufferedImage image, int startx, int starty, int width, int height) {
+        if (startx < 0) startx = 0;
+        if (starty < 0) starty = 0;
+        if (startx > image.getWidth()) startx = image.getWidth();
+        if (starty > image.getHeight()) starty = image.getHeight();
+        if (startx + width > image.getWidth()) width = image.getWidth() - startx;
+        if (starty + height > image.getHeight()) height = image.getHeight() - starty;
+        return image.getSubimage(startx, starty, width, height);
+    }
+    
+    public Color getDominantColor(BufferedImage image) {
+        Map<Integer, Integer> colorCounter = new HashMap<>(100);
+        for (int x = 0; x < image.getWidth(); x++) {
+            for (int y = 0; y < image.getHeight(); y++) {
+                int currentRGB = image.getRGB(x, y);
+                int count = colorCounter.getOrDefault(currentRGB, 0);
+                colorCounter.put(currentRGB, count + 1);
             }
         }
+        return getDominantColor(colorCounter);
+    }
+    
+    @SuppressWarnings("unchecked")
+    private Color getDominantColor(Map<Integer, Integer> colorCounter) {
+        int dominantRGB = ((Entry<Integer, Integer>) colorCounter.entrySet().stream()
+            .max(new EntryComparator())
+            .get())
+            .getKey();
+        return new Color(dominantRGB);
     }
 	
 	public void print(String str) {
@@ -100,7 +147,7 @@ public class Img2Ascii {
         } else if (g >= 180) {
             str = "]";
         } else if (g >= 177) {
-            str = "[" ;
+            str = "[";
         } else if (g >= 174) {
             str = "}";
         } else if (g >= 171) {
@@ -197,5 +244,17 @@ public class Img2Ascii {
             str = "$";
         }
         return str;
+    }
+}
+
+@SuppressWarnings("rawtypes")
+class EntryComparator implements Comparator {
+
+    @SuppressWarnings("unchecked")
+    @Override
+    public int compare(Object o1, Object o2) {
+        Entry<Integer, Integer> entry1 = (Map.Entry<Integer, Integer>) o1;
+        Entry<Integer, Integer> entry2 = (Map.Entry<Integer, Integer>) o2;
+        return (entry1.getValue() > entry2.getValue() ? 1 : -1);
     }
 }
