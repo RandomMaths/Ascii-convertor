@@ -199,13 +199,16 @@ public class Img2Ascii {
         } catch (Exception ex) {
         }
     }
-
+     
     public static void main(String[] args) {
-        System.out.print("Enter the path : ");
-        String path = input.nextLine();
-        System.out.print("Enter file output name : ");
-        fileName = input.nextLine();
-        Img2Ascii obj = new Img2Ascii();
-        obj.convertToAscii(path);
+	System.out.println("The following program was made by PROGRAMERS(gotta change the name!:P) \n To use the following program program plz follow : \n \t 1.Copy the path of the file. \n \t 2.Enter the character \"\\\" and type the file name (Image name). \n \t 3.Do not forget to write the extension of the image;like \".png\",\".jpeg\" etc.\n \t 4.Press Enter.\n \t 5.Enter the name you want of your file(output file).\n \t 6.Press Enter.");
+	System.out.print("Enter the path : ");
+	String path = input.nextLine();
+	String newPath = path.replace('\\', '/');
+	System.out.print("Enter file output name : ");
+	fileName = input.nextLine();
+	fileName += ".txt";
+	Img2Ascii obj = new Img2Ascii();
+	obj.convertToAscii(newPath);
     }
 }
