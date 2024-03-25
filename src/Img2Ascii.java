@@ -37,20 +37,20 @@ public class Img2Ascii {
         }
         
         for(int y = 0;y < toBePixelated.getHeight();y += pixelSize) {
-        	for(int x = 0;x < toBePixelated.getWidth();x += pixelSize) {
-        		croppedImg = getCroppedImage(toBePixelated, x, y, pixelSize, pixelSize);
-        		pixcol = getDominantColor(croppedImg);
-        		pixval = getColorValue(pixcol);
-        		
-        		print(strChar(pixval));
-        	}
-        	
-        	 try {
-                 prntwrt.println("");
-                 prntwrt.flush();
-                 filewrt.flush();
-             } catch (Exception ex) {
-             }
+            for(int x = 0;x < toBePixelated.getWidth();x += pixelSize) {
+                croppedImg = getCroppedImage(toBePixelated, x, y, pixelSize, pixelSize);
+                pixcol = getDominantColor(croppedImg);
+                pixval = getColorValue(pixcol);
+                
+                print(strChar(pixval));
+            }
+            
+            try {
+                prntwrt.println("");
+                prntwrt.flush();
+                filewrt.flush();
+            } catch (Exception ex) {
+            }
         }
     }
     
@@ -135,7 +135,7 @@ public class Img2Ascii {
         } else if (g >= 198) {
             str = "<";
         } else if (g >= 195) {
-           str = "~";
+            str = "~";
         } else if (g >= 192) {
             str = "+";
         } else if (g >= 189) {
